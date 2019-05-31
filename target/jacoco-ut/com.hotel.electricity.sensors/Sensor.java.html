@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Sensor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">hotel-electricity-app</a> &gt; <a href="index.source.html" class="el_package">com.hotel.electricity.sensors</a> &gt; <span class="el_source">Sensor.java</span></div><h1>Sensor.java</h1><pre class="source lang-java linenums">package com.hotel.electricity.sensors;
+
+import java.util.Optional;
+import java.util.Random;
+
+import com.hotel.electricity.corridors.Corridor;
+import com.hotel.electricity.hotels.Floor;
+import com.hotel.electricity.listeners.EventListener;
+
+/**
+ * Denotes a sensor
+ */
+public abstract class Sensor {
+
+    private String id;
+
+    private EventListener eventListener;
+
+<span class="fc" id="L19">    public Sensor(Floor floor, Corridor corridor) {</span>
+<span class="fc" id="L20">        this.id = generateSensorId(floor, corridor);</span>
+<span class="fc" id="L21">    }</span>
+
+    public String getId() {
+<span class="fc" id="L24">        return id;</span>
+    }
+
+    public EventListener getEventListener() {
+<span class="fc" id="L28">        return eventListener;</span>
+    }
+
+    public abstract void eventDetected(boolean detected);
+
+    public void registerListener(EventListener eventListener){
+<span class="fc" id="L34">        this.eventListener = eventListener;</span>
+<span class="fc" id="L35">    }</span>
+
+    public void unregisterListener(){
+<span class="fc" id="L38">        this.eventListener = null;</span>
+<span class="fc" id="L39">    }</span>
+
+    protected void notifyListener(boolean detected){
+<span class="fc" id="L42">        Optional.of(eventListener)</span>
+<span class="fc" id="L43">                .ifPresent( eventListener -&gt; eventListener.onEventDetected(this.getId(), detected));</span>
+<span class="fc" id="L44">    }</span>
+
+    private String generateSensorId(Floor floor, Corridor corridor){
+<span class="fc" id="L47">        String id = floor.getNumber()+&quot;-&quot;+corridor.getId();</span>
+<span class="fc" id="L48">        Random random = new Random();</span>
+<span class="fc" id="L49">        id += &quot;-&quot;+ random.nextInt(1000);;</span>
+<span class="fc" id="L50">        return id;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

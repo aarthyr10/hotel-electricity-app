@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Controller.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">hotel-electricity-app</a> &gt; <a href="index.source.html" class="el_package">com.hotel.electricity.controller</a> &gt; <span class="el_source">Controller.java</span></div><h1>Controller.java</h1><pre class="source lang-java linenums">package com.hotel.electricity.controller;
+
+import java.util.*;
+
+import com.hotel.electricity.corridors.Corridor;
+import com.hotel.electricity.corridors.MainCorridor;
+import com.hotel.electricity.equipment.Equipment;
+import com.hotel.electricity.equipment.Priority;
+import com.hotel.electricity.hotels.Floor;
+import com.hotel.electricity.hotels.Hotel;
+import com.hotel.electricity.listeners.EventListener;
+
+/**
+ * Controller of electronic equipments of the hotel.
+ */
+
+public class Controller implements EventListener {
+
+    private Hotel hotel;
+
+<span class="fc" id="L21">    public Controller() {}</span>
+
+    /**
+     *
+     * @param hotel
+     */
+    public void initializeController(Hotel hotel){
+<span class="fc" id="L28">        this.hotel = hotel;</span>
+<span class="fc" id="L29">        registerToSensorEvents();</span>
+<span class="fc" id="L30">        initializeDefaultState();</span>
+<span class="fc" id="L31">    }</span>
+
+    public void initializeDefaultState(){
+<span class="fc" id="L34">        hotel.getFloors().forEach( floor -&gt; floor.setDefaultState());</span>
+<span class="fc" id="L35">    }</span>
+
+    /**
+     * Registers to the sensors of the corridors of all the floors of the hotel
+     * @param hotel
+     */
+    public void registerToSensorEvents(Hotel hotel){
+<span class="fc" id="L42">        hotel.getFloors().stream()</span>
+<span class="fc" id="L43">                .map(floor -&gt; floor.getCorridors())</span>
+<span class="fc" id="L44">                .flatMap(Collection::stream)</span>
+<span class="fc" id="L45">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L46">                .forEach( corridor -&gt; {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">                    if(corridor.getSensor() != null) {</span>
+<span class="fc" id="L48">                        corridor.getSensor().registerListener(this);</span>
+                    }
+<span class="fc" id="L50">                });</span>
+<span class="fc" id="L51">    }</span>
+
+    /**
+     * Registers to the sensors of the corridors of all the floors of the hotel
+     * @param hotel
+     */
+    public void unregisterFromSensorEvents(Hotel hotel){
+<span class="fc" id="L58">        hotel.getFloors().stream()</span>
+<span class="fc" id="L59">                .map(floor -&gt; floor.getCorridors())</span>
+<span class="fc" id="L60">                .flatMap(Collection::stream)</span>
+<span class="fc" id="L61">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L62">                .forEach( corridor -&gt; {</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">                    if(corridor.getSensor() != null) {</span>
+<span class="fc" id="L64">                        corridor.getSensor().unregisterListener();</span>
+                    }
+<span class="fc" id="L66">                });</span>
+<span class="fc" id="L67">    }</span>
+
+    public void registerToSensorEvents(){
+<span class="fc" id="L70">        registerToSensorEvents(hotel);</span>
+<span class="fc" id="L71">    }</span>
+
+    public void unregisterFromSensorEvents(){
+<span class="fc" id="L74">        unregisterFromSensorEvents(hotel);</span>
+<span class="fc" id="L75">    }</span>
+
+    @Override
+    public void onEventDetected(String sensorId, boolean detected) {
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if(detected) {</span>
+<span class="fc" id="L80">            handleMovement(sensorId);</span>
+        } else {
+<span class="fc" id="L82">            handleNoMovement(sensorId);</span>
+        }
+<span class="fc" id="L84">    }</span>
+
+   /* @Override
+    public void onNoMovementDetected(String sensorId) {
+        handleNoMovement(sensorId);
+    }*/
+
+    /**
+     * Retrieves the floor and corridor information from the input sensor id
+     * and further processes the movement action.
+     * @param sensorId
+     */
+    private void handleMovement( String sensorId ){
+        try {
+<span class="fc" id="L98">            Floor floor = getFloorFromSensorId(sensorId);</span>
+<span class="fc" id="L99">            Corridor corridor = getCorridorFromSensorId(sensorId, floor);</span>
+
+<span class="fc" id="L101">            System.out.println(&quot;Movement detected at Floor number &quot;</span>
+<span class="fc" id="L102">                    + floor.getNumber() +&quot;, Corridor number &quot;+ corridor.getId());</span>
+
+<span class="fc" id="L104">            corridor.setMovementDetected(true);</span>
+<span class="fc" id="L105">            controlEquipmentsOnMovement(floor, corridor);</span>
+
+<span class="fc" id="L107">            printFloorsInfo();</span>
+
+<span class="fc" id="L109">        } catch (Exception e){</span>
+<span class="fc" id="L110">            System.out.println(e.getMessage());</span>
+<span class="fc" id="L111">        }</span>
+<span class="fc" id="L112">    }</span>
+
+    /**
+     * Controls the state of equipments of the given corridor in which the movement was detected
+     * @param floor
+     * @param corridor
+     * @throws Exception when the power consumption is too high to be compensated.
+     */
+    private void controlEquipmentsOnMovement(Floor floor, Corridor corridor) throws Exception {
+        /*When a motion is detected in one of the sub corridors the corresponding lights need to
+        be switched ON between 6PM to 6AM*/
+<span class="fc" id="L123">        corridor.getEquipments().stream()</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                .filter(equipment -&gt; equipment.getPriority() == Priority.HIGH)</span>
+<span class="fc" id="L125">                .forEach(equipment -&gt; {</span>
+<span class="fc" id="L126">                    corridor.getStateChangeTrail().push(equipment);</span>
+<span class="fc" id="L127">                    equipment.switchOn();</span>
+<span class="fc" id="L128">                    System.out.println(&quot;Switching on &quot;+equipment.getType()+&quot; of Floor &quot;+ floor.getNumber()</span>
+<span class="fc" id="L129">                            +&quot;, Corridor &quot;+ corridor.getId());</span>
+<span class="fc" id="L130">                });</span>
+
+<span class="fc" id="L132">        long difference = getPowerDifference(floor);</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        if(difference &gt; 0){</span>
+<span class="fc" id="L134">            compensatePowerConsumption(floor, corridor, difference);</span>
+        }
+<span class="fc" id="L136">    }</span>
+
+    /**
+     * If the power consumption of the floor exceeds it maximum value, the state of equipments in
+     * other corridors of the same floor are handled accordingly.
+     * @param floor
+     * @param corridor
+     * @param power
+     * @throws Exception when the power consumption is too high to be compensated
+     */
+    private void compensatePowerConsumption(Floor floor, Corridor corridor, long power) throws Exception {
+<span class="fc" id="L147">        List&lt;Corridor&gt; corridors = floor.getCorridors();</span>
+        // Consider only sub corridors for compensation in night mode
+<span class="fc" id="L149">        corridors.removeIf(corr -&gt; corr instanceof MainCorridor);</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if(corridors.size() &gt; 1) {</span>
+            // Do not consider the corridor in which movement was detected
+<span class="fc" id="L152">            corridors.remove(corridor);</span>
+        }
+
+        // Cannot switch off lights for compensation in NIGHT mode
+<span class="fc" id="L156">        int numCorridors = corridors.size();</span>
+<span class="fc bfc" id="L157" title="All 4 branches covered.">        while ( numCorridors &gt; 0  &amp;&amp; power &gt; 0) {</span>
+<span class="fc" id="L158">            Random random = new Random();</span>
+            // Pick a random sub corridor
+<span class="fc" id="L160">            int corridorIndex = random.nextInt(numCorridors);</span>
+<span class="fc" id="L161">            Corridor chosenCorridor = corridors.get(corridorIndex);</span>
+<span class="fc" id="L162">            List&lt;Equipment&gt; equipments = chosenCorridor.getEquipments();</span>
+
+            //Sort in the descending order of priority
+<span class="fc" id="L165">            Collections.sort(equipments);</span>
+            //Do not consider high priority equipments for compensation
+<span class="fc bfc" id="L167" title="All 2 branches covered.">            equipments.removeIf( equipment -&gt;  equipment.getPriority() == Priority.HIGH);</span>
+
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">            for(Equipment equipment: equipments){</span>
+                /*Push the equipment into the state change trail.
+                This trail is necessary for reverting back the compensation in case of no movement*/
+<span class="fc" id="L172">                corridor.getStateChangeTrail().push(equipment);</span>
+<span class="fc" id="L173">                equipment.switchOff();</span>
+<span class="fc" id="L174">                System.out.println(&quot;Switching off &quot;+equipment.getType()+&quot; of Floor &quot;+ floor.getNumber()</span>
+<span class="fc" id="L175">                                    +&quot;, Corridor &quot;+ chosenCorridor.getId());</span>
+
+<span class="fc" id="L177">                power -= equipment.getPowerUnits();</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">                if( power &lt;= 0)</span>
+<span class="fc" id="L179">                    break;</span>
+<span class="nc" id="L180">            }</span>
+<span class="fc" id="L181">            numCorridors--;</span>
+<span class="fc" id="L182">        }</span>
+
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if( power &gt; 0){</span>
+<span class="nc" id="L185">            throw new Exception(&quot;ALERT!! Power consumption after compensation is exceeded by &quot;+ power +&quot; units&quot;);</span>
+        }
+<span class="fc" id="L187">    }</span>
+
+    /**
+     * Retrieves the floor and corridor information from the input sensor id
+     * and further processes the no-movement action.
+     * @param sensorId
+     */
+    private void handleNoMovement( String sensorId ){
+        try {
+<span class="fc" id="L196">            Floor floor = getFloorFromSensorId(sensorId);</span>
+<span class="fc" id="L197">            Corridor corridor = getCorridorFromSensorId(sensorId, floor);</span>
+
+<span class="fc" id="L199">            System.out.println(&quot;No Movement detected at Floor number &quot;</span>
+<span class="fc" id="L200">                    + floor.getNumber() +&quot;, Corridor id &quot;+ corridor.getId());</span>
+<span class="fc" id="L201">            corridor.setMovementDetected(false);</span>
+
+<span class="fc" id="L203">            controlEquipmentsOnNoMovement(floor, corridor);</span>
+
+            // Check if there are no movements in all the sub corridors
+<span class="fc" id="L206">            long corridorsWithMovement = floor.getCorridors().stream().filter( Corridor::isMovementDetected).count();</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">            if(corridorsWithMovement == 0){</span>
+<span class="fc" id="L208">                floor.getCorridors().forEach( corr -&gt; {</span>
+<span class="fc" id="L209">                    revertStateChange(corr.getStateChangeTrail());</span>
+<span class="fc" id="L210">                });</span>
+            }
+<span class="fc" id="L212">            printFloorsInfo();</span>
+
+<span class="fc" id="L214">        } catch (Exception e){</span>
+<span class="fc" id="L215">            System.out.println(e.getMessage());</span>
+<span class="fc" id="L216">        }</span>
+<span class="fc" id="L217">    }</span>
+
+    /**
+     * Controls the state of equipments of the given corridor in which no movement was observed.
+     * @param floor
+     * @param corridor
+     */
+    private void controlEquipmentsOnNoMovement(Floor floor, Corridor corridor){
+<span class="fc" id="L225">        revertStateChange(corridor.getStateChangeTrail());</span>
+
+<span class="fc" id="L227">        long difference = getPowerDifference(floor);</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">        if(difference &gt; 0){</span>
+<span class="nc" id="L229">            List&lt;Equipment&gt; equipments = corridor.getEquipments();</span>
+<span class="nc" id="L230">            Collections.sort(equipments);</span>
+
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            while( difference &gt; 0){</span>
+                // Compensate by switching off equipments in this corridor
+<span class="nc bnc" id="L234" title="All 2 branches missed.">                for(Equipment equipment: equipments){</span>
+<span class="nc" id="L235">                    equipment.switchOff();</span>
+<span class="nc" id="L236">                    System.out.println(&quot;Switching off &quot;+equipment.getType()+&quot; of Floor &quot;+ floor.getNumber()</span>
+<span class="nc" id="L237">                            +&quot;, Corridor &quot;+ corridor.getId());</span>
+<span class="nc" id="L238">                    corridor.getStateChangeTrail().push(equipment);</span>
+<span class="nc" id="L239">                    difference -= equipment.getPowerUnits();</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                    if( difference &lt;= 0)</span>
+<span class="nc" id="L241">                        break;</span>
+<span class="nc" id="L242">                }</span>
+            }
+        }
+<span class="fc" id="L245">    }</span>
+
+    /**
+     * Brings back equipments to the state in which they were present before movement was detected
+     * in the corridor.
+     * @param stateChangeTrail
+     */
+    private void revertStateChange(Stack&lt;Equipment&gt; stateChangeTrail){
+<span class="fc bfc" id="L253" title="All 2 branches covered.">        while( !stateChangeTrail.isEmpty()){</span>
+<span class="fc" id="L254">            Equipment equipment = stateChangeTrail.pop();</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">            if(equipment.isOff()){</span>
+<span class="fc" id="L256">                equipment.switchOn();</span>
+            } else{
+<span class="fc" id="L258">                equipment.switchOff();</span>
+            }
+<span class="fc" id="L260">        }</span>
+<span class="fc" id="L261">    }</span>
+
+    /**
+     * Returns the difference between the actual power consumption and maximum allowed power consumption
+     * @param floor
+     * @return difference
+     */
+    private long getPowerDifference(Floor floor){
+<span class="fc" id="L269">        long difference = floor.getPowerConsumption() - floor.getMaxPowerConsumption();</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">        if(difference &gt; 0) {</span>
+<span class="fc" id="L271">            System.out.println(&quot;Power consumption is &quot; + floor.getPowerConsumption()+&quot; units&quot;);</span>
+<span class="fc" id="L272">            System.out.println(&quot;Power consumption exceeded by &quot; + difference+&quot; units&quot;);</span>
+        }
+<span class="fc" id="L274">        return difference;</span>
+    }
+
+    /**
+     * Retrieves the floor object based on the floor number present in the sensor id.
+     * @param sensorId
+     * @return floor
+     * @throws Exception when the floor with given number is not found
+     */
+    private Floor getFloorFromSensorId(String sensorId) throws Exception {
+<span class="fc" id="L284">        String[] sensorIdParts = sensorId.split(&quot;-&quot;);</span>
+<span class="fc" id="L285">        int floorNumber = Integer.parseInt(sensorIdParts[0]);</span>
+<span class="fc" id="L286">        Optional&lt;Floor&gt; floorOptional = hotel.getFloors().stream()</span>
+<span class="fc bfc" id="L287" title="All 2 branches covered.">                .filter(floor -&gt; floor.getNumber() == floorNumber)</span>
+<span class="fc" id="L288">                .findFirst();</span>
+
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">        if(floorOptional.isPresent())</span>
+<span class="fc" id="L291">            return floorOptional.get();</span>
+        else
+<span class="nc" id="L293">            throw new Exception(&quot;Floor with number &quot;+ floorNumber+&quot; not found&quot;);</span>
+    }
+
+    /**
+     * Retrieves the corridor object based on the corridor id present in the sensor id.
+     * @param sensorId
+     * @return floor
+     * @throws Exception when the corridor with given id is not found
+     */
+    private Corridor getCorridorFromSensorId( String sensorId, Floor floor) throws Exception {
+<span class="fc" id="L303">        String[] sensorIdParts = sensorId.split(&quot;-&quot;);</span>
+<span class="fc" id="L304">        String corridorId = sensorIdParts[1];</span>
+
+<span class="fc" id="L306">        Optional&lt;Corridor&gt; corridorOptional = floor.getCorridors().stream()</span>
+<span class="fc" id="L307">                .filter( corridor -&gt; corridorId.equals(corridor.getId()))</span>
+<span class="fc" id="L308">                .findFirst();</span>
+
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">        if(corridorOptional.isPresent())</span>
+<span class="fc" id="L311">            return corridorOptional.get();</span>
+        else
+<span class="nc" id="L313">            throw new Exception(&quot;Corridor with id &quot;+ corridorId+&quot; not found&quot;);</span>
+    }
+
+    /**
+     * Prints the information of each floor in the hotel
+     */
+    public void printFloorsInfo(){
+<span class="fc" id="L320">        hotel.getFloors().forEach(Floor::printFloorInfo);</span>
+<span class="fc" id="L321">        System.out.println(&quot;==================================================================&quot;);</span>
+<span class="fc" id="L322">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

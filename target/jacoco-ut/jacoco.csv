@@ -1,0 +1,14 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+hotel-electricity-app,com.hotel.electricity.controller,Controller,103,499,12,34,16,129,9,44,0,30
+hotel-electricity-app,com.hotel.electricity.sensors,FireSensor,0,9,0,0,0,4,0,2,0,2
+hotel-electricity-app,com.hotel.electricity.sensors,Sensor,0,69,0,0,0,16,0,8,0,8
+hotel-electricity-app,com.hotel.electricity.sensors,MovementSensor,0,9,0,0,0,4,0,2,0,2
+hotel-electricity-app,com.hotel.electricity.corridors,Corridor,0,169,0,4,0,28,0,20,0,18
+hotel-electricity-app,com.hotel.electricity.corridors,MainCorridor,0,54,0,4,0,14,0,9,0,7
+hotel-electricity-app,com.hotel.electricity.corridors,SubCorridor,0,52,0,4,0,11,0,9,0,7
+hotel-electricity-app,com.hotel.electricity.equipment,Type,0,29,0,0,0,3,0,2,0,2
+hotel-electricity-app,com.hotel.electricity.equipment,State,0,29,0,0,0,3,0,2,0,2
+hotel-electricity-app,com.hotel.electricity.equipment,Priority,0,37,0,0,0,7,0,3,0,3
+hotel-electricity-app,com.hotel.electricity.equipment,Equipment,4,63,0,4,2,19,1,13,1,11
+hotel-electricity-app,com.hotel.electricity.hotels,Hotel,0,56,0,2,0,16,0,10,0,9
+hotel-electricity-app,com.hotel.electricity.hotels,Floor,0,196,0,0,0,35,0,21,0,21

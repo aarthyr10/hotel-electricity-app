@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Corridor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">hotel-electricity-app</a> &gt; <a href="index.source.html" class="el_package">com.hotel.electricity.corridors</a> &gt; <span class="el_source">Corridor.java</span></div><h1>Corridor.java</h1><pre class="source lang-java linenums">package com.hotel.electricity.corridors;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+import java.util.stream.Collectors;
+
+import com.hotel.electricity.equipment.Equipment;
+import com.hotel.electricity.equipment.Type;
+import com.hotel.electricity.sensors.Sensor;
+
+/**
+ * Denotes a corridor
+ */
+
+public abstract class Corridor {
+
+    private String id;
+<span class="fc" id="L19">    protected List&lt;Equipment&gt; equipments = new ArrayList&lt;Equipment&gt;();</span>
+
+    //This trail is necessary for reverting back the compensation done in case of no movement
+<span class="fc" id="L22">    private Stack&lt;Equipment&gt; stateChangeTrail = new Stack&lt;&gt;();</span>
+
+    private boolean movementDetected;
+
+    private Sensor sensor;
+
+<span class="fc" id="L28">    Corridor(String id){</span>
+<span class="fc" id="L29">        this.id = id;</span>
+<span class="fc" id="L30">    }</span>
+
+    public abstract void setDefaultState();
+
+    public String getId() {
+<span class="fc" id="L35">        return id;</span>
+    }
+
+    public List&lt;Equipment&gt; getEquipments() {
+<span class="fc" id="L39">        return new ArrayList&lt;&gt;(equipments);</span>
+    }
+
+    public void addEquipment( Equipment equipment){
+<span class="fc" id="L43">        this.equipments.add(equipment);</span>
+<span class="fc" id="L44">    }</span>
+
+    public Stack&lt;Equipment&gt; getStateChangeTrail() {
+<span class="fc" id="L47">        return stateChangeTrail;</span>
+    }
+
+    public void setSensor( Sensor sensor){
+<span class="fc" id="L51">        this.sensor = sensor;</span>
+<span class="fc" id="L52">    }</span>
+
+    public Sensor getSensor(){
+<span class="fc" id="L55">        return this.sensor;</span>
+    }
+
+    public boolean isMovementDetected() {
+<span class="fc" id="L59">        return movementDetected;</span>
+    }
+
+    public void setMovementDetected(boolean movementDetected) {
+<span class="fc" id="L63">        this.movementDetected = movementDetected;</span>
+<span class="fc" id="L64">    }</span>
+
+    public void printCorridorInfo(){
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        List&lt;Equipment&gt; lights = equipments.stream().filter(equipment -&gt; equipment.getType() == Type.LIGHT).collect(Collectors.toList());</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        List&lt;Equipment&gt; acs = equipments.stream().filter(equipment -&gt; equipment.getType() == Type.AC).collect(Collectors.toList());</span>
+
+<span class="fc" id="L70">        lights.forEach( light -&gt; {</span>
+<span class="fc" id="L71">            System.out.print(&quot; &quot;+light.getType()+&quot; &quot;+ (lights.indexOf(light)+1)+&quot; : &quot;+ light.getState());</span>
+<span class="fc" id="L72">        });</span>
+<span class="fc" id="L73">        acs.forEach( ac -&gt; {</span>
+<span class="fc" id="L74">            System.out.print(&quot; &quot;+ac.getType()+&quot; &quot;+ (acs.indexOf(ac)+1)+&quot; : &quot;+ ac.getState());</span>
+<span class="fc" id="L75">        });</span>
+<span class="fc" id="L76">    }</span>
+
+    /**
+     * Get power consumption of the corridor by summing up the power units consumed by each active equipment
+     * @return totalPower
+     */
+    public int getPowerConsumption(){
+<span class="fc" id="L83">        return equipments.stream().filter(equipment -&gt; equipment.isOn())</span>
+<span class="fc" id="L84">                .map(equipment -&gt; equipment.getPowerUnits())</span>
+<span class="fc" id="L85">                .reduce(0, (a,b) -&gt; a + b);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

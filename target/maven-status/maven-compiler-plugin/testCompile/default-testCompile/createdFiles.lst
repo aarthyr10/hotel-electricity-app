@@ -1,0 +1,9 @@
+com/hotel/electricity/util/Settings.class
+com/hotel/electricity/util/Event.class
+com/hotel/electricity/corridors/CorridorTest.class
+com/hotel/electricity/hotels/FloorTest.class
+com/hotel/electricity/FunctionalTest.class
+com/hotel/electricity/equipment/EquipmentTest.class
+com/hotel/electricity/controllers/ControllerTest.class
+com/hotel/electricity/hotels/HotelTest.class
+com/hotel/electricity/sensors/SensorTest.class
